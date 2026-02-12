@@ -7,35 +7,30 @@ module PetStoreClient
   class Client
     include ResourceKit
 
-    PET_STORE_CLIENT = 'https://petstore.swagger.io'.freeze
+    BASE_URI = 'https://petstore.swagger.io'
 
-    attr_reader :access_token, :connection
+    attr_reader :access_token, :pet, :order, :conn
 
-    def resources
-      {
-        pet: PetResource.new(connection: @connection),
-        order: OrderResource.new(connection: @connection)
-      }
+    def build_resources
+      @pet = PetResource.new(connection: @conn)
+      @order = OrderResource.new(connection: @conn)
+    end
+
+    def build_connection
+      @conn ||= Faraday.new(url: BASE_URI) do |conn|
+        conn.request :authorization, 'Bearer', @access_token
+        conn.request :json
+        conn.response :json, parser_options: { symbolize_names: true }
+        conn.response :logger, @logger
+        conn.adapter Faraday.default_adapter
+      end
     end
 
     def initialize(token, logger)
       @access_token = token || ''
       @logger = logger
-      connection
-
-      resources.each do |key, value|
-        instance_variable_set("@#{key}", value)
-      end
-    end
-
-    def connection
-      @connection ||= Faraday.new(url: PET_STORE_CLIENT) do |conn|
-        conn.request :authorization, 'Bearer', @access_token
-        conn.request :json
-        conn.response :json, parser_options: { symbolize_names: true }
-        #conn.response :logger, @logger
-        conn.adapter Faraday.default_adapter
-      end
+      build_connection
+      build_resources
     end
   end
 end

@@ -114,3 +114,7 @@ The client accepts a logger instance. In the example above, logs are output to `
 ## For examples 
 
 From the root directory run ```ruby lib/examples/main.rb```
+
+## Issues
+
+Unforunately, I couldn't complete the tests.
